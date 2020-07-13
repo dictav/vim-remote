@@ -11,7 +11,7 @@ pwd=$PWD
 
 if ! test -e vimremote.sock
 then
-  tmux neww -c $PWD vim -c ':source plugin/remote.vim' -c ':RemoteStart vimremote.sock'
+  tmux neww -c $PWD vim -c ':RemoteStart vimremote.sock'
   sleep 1
 fi
 
