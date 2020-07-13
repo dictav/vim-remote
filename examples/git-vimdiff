@@ -1,0 +1,27 @@
+#!/bin/bash
+
+path=$1
+oldfile=$2
+oldhash=$3
+oldmode=$4
+newfile=$5
+newhash=$6
+newmode=$7
+pwd=$PWD
+
+if ! test -e vimremote.sock
+then
+  tmux neww -c $PWD vim -c ':source plugin/remote.vim' -c ':RemoteStart vimremote.sock'
+  sleep 1
+fi
+
+if $oldfile -eq '/dev/null'
+then
+  oldfile=$path
+fi
+
+bin/vimremote -remote=ex tabnew $oldfile
+bin/vimremote -remote=ex vertical diffsplit $newfile
+bin/vimremote -remote=redraw
+
+
