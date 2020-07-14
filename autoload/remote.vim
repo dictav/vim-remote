@@ -1,6 +1,6 @@
 vim9script
 
-const cmd = expand('<sfile>:p:h:h') .. '/bin/vimremote'
+const cmd = 'vimremote'
 
 if !exists('g:vimremote_log')
   g:vimremote_log = 0

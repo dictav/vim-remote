@@ -120,6 +120,8 @@ func runServer(sock string) error {
 
 func runClient(sock, cmd string, args []string) error {
 	src := []string{}
+	hasResult := false
+
 	switch cmd {
 	case "redraw", "ex":
 		src = append(src, cmd, strings.Join(args, " "))
@@ -131,8 +133,6 @@ func runClient(sock, cmd string, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	log.Println("sending to", sock)
 
 	b := bytes.NewBuffer(data)
 
@@ -150,6 +150,18 @@ func runClient(sock, cmd string, args []string) error {
 
 	if _, err := io.Copy(conn, b); err != nil {
 		return err
+	}
+
+	if err := conn.CloseWrite(); err != nil {
+		return err
+	}
+
+	if hasResult {
+		if _, err := io.Copy(b, conn); err != nil {
+			return err
+		}
+
+		fmt.Println(b.String())
 	}
 
 	return nil

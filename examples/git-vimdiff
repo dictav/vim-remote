@@ -1,5 +1,25 @@
 #!/bin/bash
 
+set -e
+
+sock=vimremote.sock
+
+function wait_file() {
+  f=$(echo $1 | sed 's,//,/,g')
+
+  retry=0
+  while test -z "$(vim -L 2>&1 | grep $f)"
+  do
+    sleep 0.1
+    ((retry=retry+1))
+    if test $retry -gt 10
+    then
+      echo vim could not open $f
+      exit 2
+    fi
+  done
+}
+
 path=$1
 oldfile=$2
 oldhash=$3
@@ -7,21 +27,56 @@ oldmode=$4
 newfile=$5
 newhash=$6
 newmode=$7
-pwd=$PWD
+term=""
 
-if ! test -e vimremote.sock
-then
-  tmux neww -c $PWD vim -c ':RemoteStart vimremote.sock'
-  sleep 1
-fi
-
-if $oldfile -eq '/dev/null'
+if test "$oldfile" = '/dev/null'
 then
   oldfile=$path
 fi
 
-bin/vimremote -remote=ex tabnew $oldfile
-bin/vimremote -remote=ex vertical diffsplit $newfile
-bin/vimremote -remote=redraw
+if test -n $TMUX
+then
+  term='tmux'
+fi
 
+if test "$TERM_PROGRAM" = 'iTerm.app'
+then
+  term='iterm'
+fi
 
+if ! test -e $sock
+then
+  case $term in
+    'tmux' ) 
+      tmux neww -c "$PWD" vim -c "set swapfile" -c "RemoteStart $sock" $newfile;;
+
+    'iterm' )
+      osascript <<EOF
+        tell application "iTerm"
+          tell current window
+            set newTab to (create tab with default profile)
+            tell current session of newTab
+                write text "cd \"$PWD\"; vim -c "set swapfile" -c \"RemoteStart $sock\" $newfile; exit"
+            end tell
+          end tell
+        end tell
+EOF
+      ;;
+
+    * ) exit 1 ;;
+  esac
+
+  while ! test -e $sock
+  do
+    sleep 0.1
+  done
+else
+  vimremote -remote=ex tabnew "$newfile"
+fi
+
+wait_file $newfile
+
+vimremote -remote=ex vertical diffsplit "$oldfile"
+wait_file $oldfile
+
+vimremote -remote=redraw
