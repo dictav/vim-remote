@@ -56,7 +56,7 @@ then
           tell current window
             set newTab to (create tab with default profile)
             tell current session of newTab
-                write text "cd \"$PWD\"; vim -c "set swapfile" -c \"RemoteStart $sock\" $newfile; exit"
+                write text "cd \"$PWD\"; vim -c \"set swapfile\" -c \"RemoteStart $sock\" $newfile; exit"
             end tell
           end tell
         end tell
