@@ -18,13 +18,13 @@ def s:callback(ch: channel, msg: string)
 enddef
 
 export def RemoteStart(sock = g:vimremote_default_sock_file)
-  let jobcmd = [cmd, '-serve', '-sock', sock]
+  var jobcmd = [cmd, '-serve', '-sock', sock]
   if g:vimremote_log 
     add(jobcmd, '-log')
     add(jobcmd, g:vimremote_log_file)
   endif
 
-  let job = job_start(jobcmd, {
+  var job = job_start(jobcmd, {
     'mode': 'json',
     'callback': function('s:callback')
   })
